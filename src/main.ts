@@ -1,15 +1,15 @@
-import { compile } from "./compiler.ts";
-import { Client } from "./hex.ts";
+import { compile } from './compiler.ts';
+import { Client } from './hex.ts';
 
 function json(obj: object = {}, init?: ResponseInit) {
   return new Response(
     JSON.stringify(obj),
     Object.assign(
       {
-        headers: { "content-type": "application/json" },
+        headers: { 'content-type': 'application/json' },
       },
-      init,
-    ),
+      init
+    )
   );
 }
 
@@ -21,17 +21,21 @@ export interface CompileRequest {
 }
 
 Deno.serve(async (req) => {
-  const body = (await req.json()) as Record<string, string>;
   let request: CompileRequest;
+  try {
+    const body = (await req.json()) as Record<string, string>;
 
-  if (
-    typeof body === "object" &&
-    typeof body.dependencies === "object" &&
-    typeof body.files === "object"
-  ) {
-    request = body as unknown as CompileRequest;
-  } else {
-    return json({ error: "malformed body", type: "external" });
+    if (
+      typeof body === 'object' &&
+      typeof body.dependencies === 'object' &&
+      typeof body.files === 'object'
+    ) {
+      request = body as unknown as CompileRequest;
+    } else {
+      return json({ error: 'malformed body', type: 'external' });
+    }
+  } catch (e) {
+    return json({ error: e.toString(), type: 'external' });
   }
 
   const files = {};
@@ -42,39 +46,39 @@ Deno.serve(async (req) => {
         const version = request.dependencies[name];
         try {
           const pkg = await client.fetch_files(name, version);
-          if (typeof pkg !== "object") {
+          if (typeof pkg !== 'object') {
             return json({
-              error: `${pkg === "404" ? "package or version not found" : pkg}`,
-              type: "external",
+              error: `${pkg === '404' ? 'package or version not found' : pkg}`,
+              type: 'external',
             });
           }
           Object.assign(files, pkg);
-          console.log("got package", name);
+          console.log('got package', name);
         } catch (e) {
-          return json({ error: e.toString(), type: "external" });
+          return json({ error: e.toString(), type: 'external' });
         }
       }
     }
   } catch (e) {
-    return json({ error: e.toString(), type: "external" });
+    return json({ error: e.toString(), type: 'external' });
   }
 
   const { Ok, Err } = compile({
     dependencies: Object.keys(request.dependencies),
-    mode: "Dev",
+    mode: 'Dev',
     sourceFiles: {
-      "/gleam.toml": '[dependencies]\ngleam_stdlib = "0.30.2"',
+      '/gleam.toml': '[dependencies]\ngleam_stdlib = "0.30.2"',
       ...files,
       ...request.files,
     },
 
-    target: "javascript",
+    target: 'javascript',
   });
 
-  if (Err) return json({ error: Err, type: "gleam", files, body: body });
+  if (Err) return json({ error: Err, type: 'gleam', files, body: request });
 
   const entries = Array.from(Ok!.entries()).map(([k, v]) => [
-    k.replace(/\/build\/packages\/(.+)\/src/, "/build/dev/javascript/$1"),
+    k.replace(/\/build\/packages\/(.+)\/src/, '/build/dev/javascript/$1'),
     v,
   ]);
 
