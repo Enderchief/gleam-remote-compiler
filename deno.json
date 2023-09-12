@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "lib": ["deno.ns", "dom", "deno.unstable"]
+  },
+  "tasks": {
+    "build": "cd external_gleam/compiler-wasm && wasm-pack build --target=web --out-dir ../../compiler && rm ../../compiler/.gitignore",
+    "start": "deno run --allow-all src/main.ts"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "version": "2",
+  "remote": {
+    "https://deno.land/std@0.201.0/dotenv/load.ts": "0636983549b98f29ab75c9a22a42d9723f0a389ece5498fe971e7bb2556a12e2",
+    "https://deno.land/std@0.201.0/dotenv/mod.ts": "1da8c6d0e7f7d8a5c2b19400b763bc11739df24acec235dda7ea2cfd3d300057",
+    "https://esm.sh/streaming-tar@0.1.1": "07c033bd8f5f2209082505a9dd6e6886f8fb3823159285909dab707ed3665c11",
+    "https://esm.sh/v132/streaming-tar@0.1.1/denonext/streaming-tar.mjs": "2a92f2f9e72bb7246bae3ecb97289ced5376cee0bb0b6fae470cf2bac3045785"
+  },
+  "npm": {
+    "specifiers": {
+      "@planetscale/database": "@planetscale/database@1.11.0"
+    },
+    "packages": {
+      "@planetscale/database@1.11.0": {
+        "integrity": "sha512-aWbU+D/IRHoDE9975y+Q4c+EwwAWxCPwFId+N1AhQVFXzbeJMkj6KN2iQtoi03elcLMRdfT+V3i9Z4WRw+/oIA==",
+        "dependencies": {}
+      }
+    }
+  }
+}
