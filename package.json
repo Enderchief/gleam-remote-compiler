@@ -1,0 +1,11 @@
+{
+  "name": "gleam-sandbox",
+  "description": "monorepo for gleam sandbox related stuff",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "enderchief"
+  },
+  "scripts": {
+    "build:wasm": "cd external_gleam/compiler-wasm && wasm-pack build --target=web --out-dir ../../packages/gleam-compiler/compiler && rm ../../packages/gleam-compiler/compiler/{.gitignore,package.json}"
+  }
+}
