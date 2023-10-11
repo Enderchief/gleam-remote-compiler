@@ -5,12 +5,25 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
+    "build": "export NODE_OPTIONS=--max_old_space_size=4096 && astro build",
+    "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs",
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/deno": "^5.0.1",
+    "@astrojs/solid-js": "^3.0.1",
+    "@thisbeyond/solid-dnd": "^0.7.4",
     "astro": "^3.1.0",
-    "gleam-compiler": "link:../gleam-compiler"
+    "gleam-compiler": "link:../gleam-compiler",
+    "monaco-editor": "^0.43.0",
+    "solid-js": "^1.7.11",
+    "vscode": "npm:@codingame/monaco-vscode-api@^1.82.3",
+    "vscode-oniguruma": "^2.0.1",
+    "vscode-textmate": "^9.0.0"
+  },
+  "devDependencies": {
+    "@unocss/reset": "^0.55.7",
+    "unocss": "^0.55.7",
+    "vite-plugin-inspect": "^0.7.40"
   }
 }

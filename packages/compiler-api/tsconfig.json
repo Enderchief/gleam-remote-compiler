@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "rootDir": "./src" /* Specify the root folder within your source files. */,
+    "declarationMap": true /* Create sourcemaps for d.ts files. */,
+    "outDir": "./dist" /* Specify an output folder for all emitted files. */,
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true
+  },
+  "extends": "../../tsconfig.json"
+}

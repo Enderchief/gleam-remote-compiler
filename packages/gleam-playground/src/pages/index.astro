@@ -1,19 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Editor from '../components/Editor';
 ---
 
 <Layout title='Gleam Playground'>
-  <main>
-    <marquee behavior='scoll' direction='left'>
-      <p>This site is under construction!</p>
-    </marquee>
-    <marquee behavior='scoll' direction='up'>
-        <p>Gleam</p>
-    </marquee>
-    <marquee behavior='scoll' direction='right'>
-        <p>:3</p>
-    </marquee>
-  </main>
+  <Editor client:only />
 </Layout>
 
 <style>
