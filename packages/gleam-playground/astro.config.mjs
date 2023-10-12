@@ -3,6 +3,7 @@ import deno from "@astrojs/deno"
 import solid from "@astrojs/solid-js";
 import UnoCSS from "unocss/astro";
 import inspect from "vite-plugin-inspect"
+import wasm from "vite-plugin-wasm";
 
 // https://astro.build/config
 export default defineConfig({
@@ -10,9 +11,10 @@ export default defineConfig({
     adapter: deno(),
     integrations: [solid(), UnoCSS({ injectReset: true })],
     vite: {
-        plugins: [inspect()],
+        plugins: [inspect(), wasm()],
         build: {
             sourcemap: true
-        }
+        },
+        optimizeDeps: { exclude: ["./src/compiler"] }
     },
 });

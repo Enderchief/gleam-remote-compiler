@@ -1,12 +1,15 @@
-import * as monaco from 'monaco-editor';
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
 import { For, createEffect, createSignal, type Setter } from 'solid-js';
 
+import { parse } from 'smol-toml';
+
 import '../loadWorkers.js';
+import CompilerWorker from '../worker.js?worker';
 
 import { createEditor } from '../textmate/app.js';
 import { registerGleam } from 'src/gleam.js';
-import { KeyCode, KeyMod } from 'monaco-editor';
 import Split from './Split.jsx';
+import { KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js';
 registerGleam();
 
 type Folder = {
@@ -66,6 +69,8 @@ function createFilesystem() {
     get,
   };
 }
+
+const compiler = new CompilerWorker();
 
 export default function () {
   const parent = (<div class='w-[100%]'></div>) as HTMLDivElement;
@@ -132,7 +137,7 @@ export default function () {
   });
 
   const [result, setResult] = createSignal<
-    { Ok: Record<string, any>; Err: undefined } | { Ok: undefined; Err: string }
+    { Ok: Map<string, string>; Err: undefined } | { Ok: undefined; Err: string }
   >();
 
   const [currentFile, setFile] = createSignal('/src/main.gleam');
@@ -140,12 +145,12 @@ export default function () {
   createEffect(() => {
     const model = file.model(currentFile());
     if (model) editor()?.setModel(model);
+    editor()?.updateOptions({ readOnly: false });
   });
-
-  console.log(editor);
 
   function swapLanguage() {
     const r = result()?.Ok;
+
     if (!r) return;
     const name = currentFile();
 
@@ -164,7 +169,7 @@ export default function () {
     setFile(path);
 
     if (path.endsWith('.mjs') && path.startsWith('/build/dev')) {
-      const content = r[path];
+      const content = r.get(path);
       if (!content) return;
       editor()?.setModel(monaco.editor.createModel(content, 'javascript'));
       editor()?.updateOptions({ readOnly: true });
@@ -174,28 +179,42 @@ export default function () {
     }
 
     provider!.injectCSS();
-    console.log(provider!);
   }
 
-  async function compileCode() {
+  async function compileCode(): Promise<void> {
     const body = file.contents();
 
-    const res = await fetch('/api/compile', {
-      method: 'post',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        files: body,
-      }),
-    });
+    const rawToml = body['gleam.toml'] || '';
+    const parsedToml = parse(rawToml);
+    const dependencies = parsedToml.dependencies;
 
-    const data = await res.json();
-    console.log(data);
+    console.log(dependencies);
+
+    const res = await fetch('/api/hex', {
+      body: JSON.stringify(dependencies),
+      headers: { 'content-type': 'application/json' },
+      method: 'post',
+    });
+    console.log(res);
+
+    if (!res.ok) return void setOutput(<pre class='c-red-5'>{res.status}</pre>);
+
+    const deps = await res.json();
+
+    Object.assign(body, deps);
+    console.log(body);
+
+    compiler.postMessage({ files: body, dependencies });
+  }
+
+  compiler.addEventListener('message', (ev) => {
+    const data = ev.data;
     setResult(data);
 
     if (data.error) {
       setOutput(<pre class='c-red-5'>{data.error}</pre>);
     }
-  }
+  });
 
   return (
     <main class='h-screen w-screen flex flex-col b-amber'>

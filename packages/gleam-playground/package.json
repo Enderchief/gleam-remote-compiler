@@ -12,11 +12,14 @@
   "dependencies": {
     "@astrojs/deno": "^5.0.1",
     "@astrojs/solid-js": "^3.0.1",
+    "@planetscale/database": "^1.11.0",
     "@thisbeyond/solid-dnd": "^0.7.4",
     "astro": "^3.1.0",
     "gleam-compiler": "link:../gleam-compiler",
     "monaco-editor": "^0.43.0",
+    "smol-toml": "^1.1.2",
     "solid-js": "^1.7.11",
+    "streaming-tar": "^0.1.1",
     "vscode": "npm:@codingame/monaco-vscode-api@^1.82.3",
     "vscode-oniguruma": "^2.0.1",
     "vscode-textmate": "^9.0.0"
@@ -24,6 +27,7 @@
   "devDependencies": {
     "@unocss/reset": "^0.55.7",
     "unocss": "^0.55.7",
-    "vite-plugin-inspect": "^0.7.40"
+    "vite-plugin-inspect": "^0.7.40",
+    "vite-plugin-wasm": "^3.2.2"
   }
 }

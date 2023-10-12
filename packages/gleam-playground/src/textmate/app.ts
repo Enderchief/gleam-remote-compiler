@@ -1,6 +1,49 @@
 import type { ScopeName, TextMateGrammar, ScopeNameInfo } from './providers';
 
-import * as monaco from 'monaco-editor';
+// #region monaco imports
+// import 'monaco-editor/esm/vs/editor/browser/coreCommands.js';
+// import 'monaco-editor/esm/vs/editor/browser/editorExtensions.js';
+// import 'monaco-editor/esm/vs/editor/contrib/anchorSelect/browser/anchorSelect.js';
+// import 'monaco-editor/esm/vs/editor/contrib/bracketMatching/browser/bracketMatching.js';
+// import 'monaco-editor/esm/vs/editor/contrib/caretOperations/browser/caretOperations.js';
+// import 'monaco-editor/esm/vs/editor/contrib/caretOperations/browser/transpose.js';
+// import 'monaco-editor/esm/vs/editor/contrib/clipboard/browser/clipboard.js';
+// import 'monaco-editor/esm/vs/editor/contrib/codeAction/browser/codeActionContributions.js';
+// import 'monaco-editor/esm/vs/editor/contrib/codelens/browser/codelensController.js';
+// import 'monaco-editor/esm/vs/editor/contrib/colorPicker/browser/colorContributions.js';
+// import 'monaco-editor/esm/vs/editor/contrib/comment/browser/comment.js';
+// import 'monaco-editor/esm/vs/editor/contrib/contextmenu/browser/contextmenu.js';
+// import 'monaco-editor/esm/vs/editor/contrib/cursorUndo/browser/cursorUndo.js';
+// import 'monaco-editor/esm/vs/editor/contrib/dnd/browser/dnd.js';
+// import 'monaco-editor/esm/vs/editor/contrib/documentSymbols/browser/documentSymbols.js';
+// import 'monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/copyPasteContribution.js';
+// import 'monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/dropIntoEditorContribution.js';
+// import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js';
+// import 'monaco-editor/esm/vs/editor/contrib/folding/browser/folding.js';
+// import 'monaco-editor/esm/vs/editor/contrib/fontZoom/browser/fontZoom.js';
+// import 'monaco-editor/esm/vs/editor/contrib/format/browser/formatActions.js';
+// import 'monaco-editor/esm/vs/editor/contrib/gotoError/browser/gotoError.js';
+// import 'monaco-editor/esm/vs/editor/contrib/gotoSymbol/browser/goToCommands.js';
+// import 'monaco-editor/esm/vs/editor/contrib/gotoSymbol/browser/link/goToDefinitionAtPosition.js';
+// import 'monaco-editor/esm/vs/editor/contrib/hover/browser/hover.js';
+// import 'monaco-editor/esm/vs/editor/contrib/inPlaceReplace/browser/inPlaceReplace.js';
+// import 'monaco-editor/esm/vs/editor/contrib/indentation/browser/indentation.js';
+// import 'monaco-editor/esm/vs/editor/contrib/inlayHints/browser/inlayHintsContribution.js';
+// import 'monaco-editor/esm/vs/editor/contrib/inlineCompletions/browser/inlineCompletions.contribution.js';
+// import 'monaco-editor/esm/vs/editor/contrib/inlineProgress/browser/inlineProgress.js';
+// import 'monaco-editor/esm/vs/editor/contrib/lineSelection/browser/lineSelection.js';
+// import 'monaco-editor/esm/vs/editor/contrib/linesOperations/browser/linesOperations.js';
+// import 'monaco-editor/esm/vs/editor/contrib/';
+// import 'monaco-editor/esm/vs/editor/contrib/';
+// import 'monaco-editor/esm/vs/editor/contrib/';
+// #endregion
+import 'monaco-editor/esm/vs/editor/editor.all';
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
+import 'monaco-editor/esm/vs/language/typescript/monaco.contribution.js';
+import 'monaco-editor/esm/vs/language/html/monaco.contribution.js';
+import 'monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution.js';
+import 'monaco-editor/esm/vs/basic-languages/html/html.contribution.js';
+
 import {
   createOnigScanner,
   createOnigString,

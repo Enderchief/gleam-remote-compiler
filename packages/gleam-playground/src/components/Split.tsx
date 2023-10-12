@@ -28,7 +28,7 @@ export default function SplitContainer(props: {
     props.onresize &&
       props.onresize({
         width: w - e.clientX - gutterSize,
-        height: start.offsetHeight - 2,
+        height: start.offsetHeight,
       });
   }
   function mousedown(ev: MouseEvent) {

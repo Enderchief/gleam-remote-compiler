@@ -39,8 +39,8 @@ export function rehydrateRegexps(
       setProp(out, property, new RegExp(value));
     }
   }
-  console.log("OUT!!!:", out);
-  
+  console.log('OUT!!!:', out);
+
   return out;
 }
 

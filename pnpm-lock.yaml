@@ -44,6 +44,9 @@ importers:
       '@astrojs/solid-js':
         specifier: ^3.0.1
         version: 3.0.2(solid-js@1.7.12)(vite@4.4.11)
+      '@planetscale/database':
+        specifier: ^1.11.0
+        version: 1.11.0
       '@thisbeyond/solid-dnd':
         specifier: ^0.7.4
         version: 0.7.4(solid-js@1.7.12)
@@ -56,9 +59,15 @@ importers:
       monaco-editor:
         specifier: ^0.43.0
         version: 0.43.0
+      smol-toml:
+        specifier: ^1.1.2
+        version: 1.1.2
       solid-js:
         specifier: ^1.7.11
         version: 1.7.12
+      streaming-tar:
+        specifier: ^0.1.1
+        version: 0.1.1
       vscode:
         specifier: npm:@codingame/monaco-vscode-api@^1.82.3
         version: /@codingame/monaco-vscode-api@1.82.4
@@ -78,6 +87,9 @@ importers:
       vite-plugin-inspect:
         specifier: ^0.7.40
         version: 0.7.40(vite@4.4.11)
+      vite-plugin-wasm:
+        specifier: ^3.2.2
+        version: 3.2.2(vite@4.4.11)
 
 packages:
 
@@ -4100,6 +4112,11 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
+  /smol-toml@1.1.2:
+    resolution: {integrity: sha512-opeweddRVyIFjnNPmEodUn4LlVeiZNE3OZ3QiLvyC/pWxNgW3z02oCTVOFVgYI1w1sSO4nifFCcvw1ADOMs5ag==}
+    engines: {node: '>= 18', pnpm: '>= 8'}
+    dev: false
+
   /solid-js@1.7.12:
     resolution: {integrity: sha512-QoyoOUKu14iLoGxjxWFIU8+/1kLT4edQ7mZESFPonsEXZ//VJtPKD8Ud1aTKzotj+MNWmSs9YzK6TdY+fO9Eww==}
     dependencies:
@@ -4730,6 +4747,14 @@ packages:
     transitivePeerDependencies:
       - supports-color
     dev: false
+
+  /vite-plugin-wasm@3.2.2(vite@4.4.11):
+    resolution: {integrity: sha512-cdbBUNR850AEoMd5nvLmnyeq63CSfoP1ctD/L2vLk/5+wsgAPlAVAzUK5nGKWO/jtehNlrSSHLteN+gFQw7VOA==}
+    peerDependencies:
+      vite: ^2 || ^3 || ^4
+    dependencies:
+      vite: 4.4.11
+    dev: true
 
   /vite@4.4.11:
     resolution: {integrity: sha512-ksNZJlkcU9b0lBwAGZGGaZHCMqHsc8OpgtoYhsQ4/I2v5cnpmmmqe5pM4nv/4Hn6G/2GhTdj0DhZh2e+Er1q5A==}

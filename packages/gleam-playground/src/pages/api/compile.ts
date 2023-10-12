@@ -1,8 +1,10 @@
 import type { APIRoute } from 'astro';
 import { z } from 'astro/zod';
-import { compile } from 'gleam-compiler';
+import init, { compile } from '../../compiler/gleam_wasm.js';
 
-const bodySchema = z.object({
+await init();
+
+export const bodySchema = z.object({
   files: z.record(z.string(), z.string()),
   dependencies: z.record(z.string(), z.string()).optional(),
   target: z
