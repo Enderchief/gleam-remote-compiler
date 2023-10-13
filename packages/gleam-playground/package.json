@@ -6,12 +6,13 @@
     "dev": "astro dev",
     "start": "astro dev",
     "build": "export NODE_OPTIONS=--max_old_space_size=4096 && astro build",
-    "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs",
+    "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
     "@astrojs/deno": "^5.0.1",
     "@astrojs/solid-js": "^3.0.1",
+    "@astrojs/vercel": "^5.0.2",
     "@planetscale/database": "^1.11.0",
     "@thisbeyond/solid-dnd": "^0.7.4",
     "astro": "^3.1.0",

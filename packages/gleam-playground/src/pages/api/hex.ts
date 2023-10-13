@@ -1,5 +1,5 @@
 import { entries } from 'streaming-tar';
-import { connect, Connection } from '@planetscale/database';
+import { connect, type Connection } from '@planetscale/database';
 import type { APIRoute } from 'astro';
 import { z } from 'astro/zod';
 
