@@ -78,7 +78,7 @@ export default function () {
   const [output, setOutput] = createSignal(<pre>{'// run your code'}</pre>);
 
   const outputArea = (
-    <div class='h-75 b b-[#ccc] b-t-none c-white bg-[#1e1e1e] py-4 px-8 text-4 font-[FiraCode] of-scroll'>
+    <div class='h-75 c-white bg-[#1e1e1e] py-4 px-8 text-4 font-[FiraCode] of-scroll'>
       {output()}
     </div>
   );
@@ -120,13 +120,32 @@ export default function () {
     provider = p;
     file.push({
       '/src/main.gleam': monaco.editor.createModel(
-        'import foo\n\npub fn main() {\n    foo.add(3, 39)\n}\n',
+        `import foo
+import gleam/float
+import gleam/io
+
+const pi = 3.141592653589793
+
+pub fn main() {
+    foo.div(pi, 2.)
+    |> foo.sin
+    |> float.to_string
+    |> io.println
+}
+`,
         'gleam'
       ),
       '/src/foo.gleam': monaco.editor.createModel(
-        'pub fn add(x: Int, y: Int) -> Int {\n    x + y\n}\n',
+        `pub fn div(x: Float, y: Float) -> Float {
+    x /. y
+}
+
+@external(javascript, "./ffi.mjs", "sin")
+pub fn sin(theta: Float) -> Float
+`,
         'gleam'
       ),
+      '/src/ffi.mjs': monaco.editor.createModel('export function sin(theta) {\n    return Math.sin(theta)\n}\n', 'javascript'),
       'gleam.toml': monaco.editor.createModel(
         '# gleam.toml is only used for dependencies\n\n# version have to be exact (no \'foo = "~> 0.1.3"\')\n[dependencies]\ngleam_stdlib = "0.31.0"',
         'toml'
@@ -246,10 +265,13 @@ function FileTree(props: {
   function newFile() {
     const name = prompt('Enter a file path (ex: /src/bar.gleam)')!;
     if (!name) return;
+    console.log(name);
+
     props.files.push({
       [name]: monaco.editor.createModel(
         '// hello there',
-        name.split('.').at(-1)!
+        undefined,
+        monaco.Uri.file(name)
       ),
     });
   }

@@ -83,7 +83,7 @@ const languages: monaco.languages.ILanguageExtensionPoint[] = [
   },
   {
     id: 'toml',
-    extensions: ['toml'],
+    extensions: ['.toml'],
   },
 ];
 const grammars: { [scopeName: string]: DemoScopeNameInfo } = {
