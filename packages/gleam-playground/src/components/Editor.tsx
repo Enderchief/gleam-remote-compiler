@@ -2,9 +2,11 @@ import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
 import { For, createEffect, createSignal, type Setter } from 'solid-js';
 
 import { parse } from 'smol-toml';
+import { build, initialize, type Plugin } from 'esbuild-wasm';
 
 import '../loadWorkers.js';
 import CompilerWorker from '../worker.js?worker';
+import wasmURL from 'esbuild-wasm/esbuild.wasm?url';
 
 import { createEditor } from '../textmate/app.js';
 import { registerGleam } from 'src/gleam.js';
@@ -71,6 +73,7 @@ function createFilesystem() {
 }
 
 const compiler = new CompilerWorker();
+await initialize({ wasmURL });
 
 export default function () {
   const parent = (<div class='w-[100%]'></div>) as HTMLDivElement;
@@ -145,18 +148,26 @@ pub fn sin(theta: Float) -> Float
 `,
         'gleam'
       ),
-      '/src/ffi.mjs': monaco.editor.createModel('export function sin(theta) {\n    return Math.sin(theta)\n}\n', 'javascript'),
+      '/src/ffi.mjs': monaco.editor.createModel(
+        'export function sin(theta) {\n    return Math.sin(theta)\n}\n',
+        'javascript'
+      ),
       'gleam.toml': monaco.editor.createModel(
         '# gleam.toml is only used for dependencies\n\n# version have to be exact (no \'foo = "~> 0.1.3"\')\n[dependencies]\ngleam_stdlib = "0.31.0"',
         'toml'
       ),
+      //   'index.html': monaco.editor.createModel(
+      //     '<html>\n    <body>\n        <h1>hello world</h1>\n    </body>\n</html>',
+      //     'html'
+      //   ),
     });
 
     e.setModel(file.model('/src/main.gleam')!);
   });
 
   const [result, setResult] = createSignal<
-    { Ok: Map<string, string>; Err: undefined } | { Ok: undefined; Err: string }
+    | { Ok: Map<string, string>; error: undefined }
+    | { Ok: undefined; error: string }
   >();
 
   const [currentFile, setFile] = createSignal('/src/main.gleam');
@@ -207,54 +218,163 @@ pub fn sin(theta: Float) -> Float
     const parsedToml = parse(rawToml);
     const dependencies = parsedToml.dependencies;
 
-    console.log(dependencies);
-
     const res = await fetch('/api/hex', {
       body: JSON.stringify(dependencies),
       headers: { 'content-type': 'application/json' },
       method: 'post',
     });
-    console.log(res);
 
     if (!res.ok) return void setOutput(<pre class='c-red-5'>{res.status}</pre>);
 
     const deps = await res.json();
 
     Object.assign(body, deps);
-    console.log(body);
 
     compiler.postMessage({ files: body, dependencies });
   }
 
-  compiler.addEventListener('message', (ev) => {
-    const data = ev.data;
-    setResult(data);
+  compiler.addEventListener(
+    'message',
+    (ev: MessageEvent<ReturnType<typeof result>>) => {
+      const data = ev.data!;
 
-    if (data.error) {
-      setOutput(<pre class='c-red-5'>{data.error}</pre>);
+      const contents = file.get();
+      if (data.Ok) {
+        for (const path in contents) {
+          if (Object.prototype.hasOwnProperty.call(contents, path)) {
+            const v = contents[path];
+
+            if (v && v.type === 'file' && !path.endsWith('.gleam')) {
+              if (path.startsWith('/src')) {
+                data.Ok.set(
+                  path.replace(
+                    /\/src\/(.+)/,
+                    '/build/dev/javascript/gleam-wasm/$1'
+                  ),
+                  v.editor.getValue()
+                );
+              }
+            }
+          }
+        }
+        for (const [path, value] of (
+          data.Ok as Map<string, string>
+        ).entries()) {
+          if (path.startsWith('/build/packages')) {
+            const key = path.replace(
+              /\/build\/packages\/([\w_\-\d]+)\/src\/(.+)/,
+              '/build/dev/javascript/$1/$2'
+            );
+            data.Ok.delete(key);
+            data.Ok.set(key, value);
+          }
+        }
+      }
+
+      setResult(data);
+
+      if (data.error) {
+        setOutput(<pre class='c-red-5'>{data.error}</pre>);
+      }
     }
-  });
+  );
+
+  function virtual() {
+    return {
+      name: 'playground-virtual-filesystem',
+      setup(build) {
+        const res = result()?.Ok!;
+        build.onResolve({ filter: /ENTRY/ }, (_) => {
+          return { path: 'ENTRY', namespace: 'gleam' };
+        });
+        build.onLoad({ filter: /ENTRY/, namespace: 'gleam' }, (_) => {
+          return {
+            contents:
+              'import {main} from "/build/dev/javascript/gleam-wasm/main.mjs";(console.log(main)||main)',
+          };
+        });
+
+        build.onResolve({ filter: /\.mjs$/ }, async (args) => {
+          if (args.path.startsWith('/'))
+            return { path: args.path, namespace: 'gleam' };
+
+          const url = new URL(`file:${args.importer}/../${args.path}`);
+
+          return { path: url.pathname, namespace: 'gleam' };
+        });
+        build.onLoad({ namespace: 'gleam', filter: /\.*/ }, (args) => {
+          const o = res.get(args.path)!;
+
+          return { contents: o };
+        });
+      },
+    } satisfies Plugin;
+  }
+
+  async function bundle() {
+    const res = await build({
+      entryPoints: ['ENTRY'],
+      plugins: [virtual()],
+      bundle: true,
+      format: 'esm',
+    });
+    const td = new TextDecoder('utf-8');
+    const content = td.decode(res.outputFiles![0]!.contents);
+
+    const eval_res = eval(content + '\nmain');
+    if (!eval_res) return;
+    const _log = console.log,
+      _error = console.error;
+
+    console.log = (...args) => {
+      setOutput([output(), <pre>{args}</pre>]);
+    };
+    console.error = (...args) => {
+      setOutput([output(), <pre class='c-red-5'>{args}</pre>]);
+    };
+    setOutput();
+    eval_res();
+
+    console.log = _log;
+    console.error = _error;
+  }
+
+  /*#TODO: iframe browser output.
+  const url = () =>
+    URL.createObjectURL(
+      new Blob(['<h1>hello world</h1>'], { type: 'text/html' })
+    );
+
+  const frame = (
+    <iframe src={url()} sandbox='allow-scripts'></iframe>
+  ) as HTMLIFrameElement;
+  consider import maps in a module worker + blob urls
+  */
 
   return (
-    <main class='h-screen w-screen flex flex-col b-amber'>
-      <div class='children:(b b-coolGray min-w-fit mx-4 px-2)'>
-        <button class='' onclick={compileCode}>
-          Compile
-        </button>
-        <button onclick={swapLanguage}>View JS Source</button>
-      </div>
-      <Split
-        class='h-100%'
-        orientation='vertical'
-        onresize={(size) => {
-          editor()?.layout(size);
-        }}
-      >
-        <FileTree files={file} setFile={setFile} />
-        {parent}
-      </Split>
-      {outputArea}
-    </main>
+    <>
+      <main class='h-screen w-screen flex flex-col b-amber'>
+        <div class='children:(b b-coolGray min-w-fit mx-4 px-2)'>
+          <button class='' onclick={compileCode}>
+            Compile
+          </button>
+          <button onclick={swapLanguage}>View JS Source</button>
+          <button onclick={() => result()?.Ok && bundle()}>Bundle</button>
+        </div>
+        <Split
+          class='h-100%'
+          orientation='vertical'
+          onresize={(size) => {
+            editor()?.layout(size);
+          }}
+        >
+          <FileTree files={file} setFile={setFile} />
+          {parent}
+        </Split>
+        {outputArea}
+      </main>
+      {/* {frame} */}
+    </>
   );
 }
 

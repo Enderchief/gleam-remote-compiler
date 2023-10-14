@@ -14,15 +14,12 @@ export default function SplitContainer(props: {
   const [start, end] = convert(...props.children);
 
   function onMouseMove(e: MouseEvent) {
-    console.log(e, element.offsetHeight, element.getClientRects()[0]?.height);
-
     const w = element.offsetWidth;
 
     if (e.clientX <= 200 || e.clientX >= w - 600) return console.log('NOPE');
     const fr = e.clientX / w;
 
     const template = `${fr}fr ${gutterSize}px ${1 - fr}fr`;
-    console.log(template, e.clientX, fr, element.offsetHeight);
     element.style.gridTemplateColumns = template;
 
     props.onresize &&
