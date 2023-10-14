@@ -36,7 +36,18 @@ function createFilesystem() {
             onclick={() => setFile(name)}
             class='hover:bg-dark pl-0.5 pr-4 py-0.5 cursor-pointer first-children:hover:opacity-60'
           >
-            <span class='text-size-3 px-2 opacity-0'>\udb80\uddd9</span>
+            <span
+              class='text-size-4 px-2 opacity-0 c-red-4'
+              onclick={() => {
+                set(
+                  Object.fromEntries(
+                    Object.entries(get()).filter(([k, v]) => k !== name)
+                  )
+                );
+              }}
+            >
+              
+            </span>
             <span class='text-size-4'>
               {context.type === 'file' ? ' ' : ' '}
             </span>
@@ -402,7 +413,7 @@ function FileTree(props: {
         <button aria-label='new file' onclick={newFile}>
           
         </button>
-        <button aria-label='new folder'></button>
+        {/* <button aria-label='new folder'></button> */}
       </div>
       <ul class='py-4 text-3 list-none'>{props.files.render(props.setFile)}</ul>
     </div>
