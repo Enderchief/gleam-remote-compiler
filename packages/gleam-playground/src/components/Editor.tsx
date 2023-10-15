@@ -25,6 +25,10 @@ type File = {
 
 type Content = File | Folder;
 
+type CompileResult =
+  | { Ok: Map<string, string>; error: undefined }
+  | { Ok: undefined; error: string };
+
 function createFilesystem() {
   const [get, set] = createSignal<Record<string, Content>>({});
 
@@ -51,7 +55,8 @@ function createFilesystem() {
             <span class='text-size-4'>
               {context.type === 'file' ? ' ' : ' '}
             </span>
-            {name.replace(/\/src\//, '')}
+            {name}
+            {/* {name.replace(/\/src\//, '')} */}
           </li>
         )}
       </For>
@@ -83,11 +88,44 @@ function createFilesystem() {
   };
 }
 
+function virtual(files: CompileResult) {
+  return {
+    name: 'playground-virtual-filesystem',
+    setup(build) {
+      const res = files?.Ok!;
+      build.onResolve({ filter: /ENTRY/ }, (_) => {
+        return { path: 'ENTRY', namespace: 'gleam' };
+      });
+      build.onLoad({ filter: /ENTRY/, namespace: 'gleam' }, (_) => {
+        return {
+          contents:
+            'import {main} from "/build/dev/javascript/gleam-wasm/main.mjs";(console.log(main)||main)',
+        };
+      });
+
+      build.onResolve({ filter: /\.mjs$/ }, async (args) => {
+        if (args.path.startsWith('/'))
+          return { path: args.path, namespace: 'gleam' };
+
+        const url = new URL(`file:${args.importer}/../${args.path}`);
+
+        return { path: url.pathname, namespace: 'gleam' };
+      });
+      build.onLoad({ namespace: 'gleam', filter: /\.*/ }, (args) => {
+        const o = res.get(args.path)!;
+
+        return { contents: o };
+      });
+    },
+  } satisfies Plugin;
+}
+
 const compiler = new CompilerWorker();
 await initialize({ wasmURL });
 
 export default function () {
   const parent = (<div class='w-[100%]'></div>) as HTMLDivElement;
+  const task: VoidFunction[] = [];
 
   const [output, setOutput] = createSignal(<pre>{'// run your code'}</pre>);
 
@@ -176,10 +214,7 @@ pub fn sin(theta: Float) -> Float
     e.setModel(file.model('/src/main.gleam')!);
   });
 
-  const [result, setResult] = createSignal<
-    | { Ok: Map<string, string>; error: undefined }
-    | { Ok: undefined; error: string }
-  >();
+  const [result, setResult] = createSignal<CompileResult>();
 
   const [currentFile, setFile] = createSignal('/src/main.gleam');
 
@@ -286,46 +321,17 @@ pub fn sin(theta: Float) -> Float
 
       if (data.error) {
         setOutput(<pre class='c-red-5'>{data.error}</pre>);
+      } else {
+        task.forEach((t) => t());
+        task.length = 0;
       }
     }
   );
 
-  function virtual() {
-    return {
-      name: 'playground-virtual-filesystem',
-      setup(build) {
-        const res = result()?.Ok!;
-        build.onResolve({ filter: /ENTRY/ }, (_) => {
-          return { path: 'ENTRY', namespace: 'gleam' };
-        });
-        build.onLoad({ filter: /ENTRY/, namespace: 'gleam' }, (_) => {
-          return {
-            contents:
-              'import {main} from "/build/dev/javascript/gleam-wasm/main.mjs";(console.log(main)||main)',
-          };
-        });
-
-        build.onResolve({ filter: /\.mjs$/ }, async (args) => {
-          if (args.path.startsWith('/'))
-            return { path: args.path, namespace: 'gleam' };
-
-          const url = new URL(`file:${args.importer}/../${args.path}`);
-
-          return { path: url.pathname, namespace: 'gleam' };
-        });
-        build.onLoad({ namespace: 'gleam', filter: /\.*/ }, (args) => {
-          const o = res.get(args.path)!;
-
-          return { contents: o };
-        });
-      },
-    } satisfies Plugin;
-  }
-
   async function bundle() {
     const res = await build({
       entryPoints: ['ENTRY'],
-      plugins: [virtual()],
+      plugins: [virtual(result()!)],
       bundle: true,
       format: 'esm',
     });
@@ -339,9 +345,11 @@ pub fn sin(theta: Float) -> Float
 
     console.log = (...args) => {
       setOutput([output(), <pre>{args}</pre>]);
+      _log(...args);
     };
     console.error = (...args) => {
       setOutput([output(), <pre class='c-red-5'>{args}</pre>]);
+      _error(...args);
     };
     setOutput();
     eval_res();
@@ -370,7 +378,10 @@ pub fn sin(theta: Float) -> Float
             Compile
           </button>
           <button onclick={swapLanguage}>View JS Source</button>
-          <button onclick={() => result()?.Ok && bundle()}>Bundle</button>
+          {/* <button onclick={() => result()?.Ok && bundle()}>Bundle</button> */}
+          <button onclick={() => compileCode().then(() => task.push(bundle))}>
+            Run Code
+          </button>
         </div>
         <Split
           class='h-100%'
